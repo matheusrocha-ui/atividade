@@ -1,75 +1,106 @@
-# Gerenciador de Tarefas / Compromissos
+# Gerenciador de Compromissos 
 
-Esse projeto foi feito para o trabalho da matéria. A ideia é ter um sisteminha simples que guarda compromissos no banco SQLite e deixa listar e adicionar coisas.
-Tentei seguir o que foi pedido no PDF, como separar em camadas e usar TypeScript, mas deixei tudo o mais simples possível para eu mesmo conseguir entender depois.
+Escolhi usar uma separação em camadas parecida com o que foi pedido no trabalho, porque isso deixa o código mais organizado e mais fácil de entender. Cada parte fica responsável pela sua função: a parte de dados, a parte que fala com o usuário (CLI/API) e a parte das regras de negócio. Isso ajuda bastante quando precisa arrumar algo depois.
 
-## O que o sistema faz
+No meu caso, eu trabalhei com compromissos. A CLI ou a API chamam o serviço, que por sua vez usa o repositório para salvar e listar os dados no SQLite.
 
-* Lista compromissos
-* Adiciona um compromisso com data e hora
-* Não deixa colocar horário que bate com outro
-* Tem uma CLI e também uma API REST básica
+---
 
-## Como eu organizei o projeto
+## Estrutura do projeto
 
-Segui mais ou menos o modelo que o professor colocou:
-
+```
 src/
-  adapters/
-    cli/
-    rest/
-  core/
-  domain/
-  infra/
+ ├── adapters/
+ │     ├── cli/
+ │     │     cli.ts
+ │     └── rest/
+ │           server.ts
+ ├── core/
+ │     schedulerService.ts
+ ├── domain/
+ │     appointment.ts
+ └── infra/
+       appointmentRepo.ts
+       db.ts
 
-* *adapters* → onde conversa com usuário (CLI) ou API
-* *core* → regras do sistema
-* *domain* → só o modelo dos dados
-* *infra* → banco SQLite
+package.json
+tsconfig.json
+README.md
+tarefas.db (gerado automaticamente)
+```
 
-## Como rodar
+---
 
-Primeiro instala as dependências:
+## Como instalar
 
+Abra a pasta no VS Code.
+No terminal, rode:
+
+```
 npm install
+npm install typescript ts-node --save-dev
+npm install better-sqlite3
+```
 
-## Usando a CLI
+O tsconfig já está no projeto, mas caso precise:
+
+```
+npx tsc --init
+```
+
+---
+
+## Como executar (CLI)
 
 ### Listar compromissos:
 
+```
 npx ts-node src/adapters/cli/cli.ts listar
+```
 
-### Adicionar:
+### Adicionar compromisso:
 
-npx ts-node src/adapters/cli/cli.ts add 25/12/2024 10:00 11:00 "Reunião"
+```
+npx ts-node src/adapters/cli/cli.ts add 10/10/2024 08:00 09:00 "Reunião"
+```
 
-O formato é:
+---
 
-data hora_inicio hora_fim descrição
+## Como executar (API REST)
 
-## API REST
+Rodar o servidor:
 
-Se quiser usar com API também dá.
-
-### Rodar o servidor:
-
+```
 npx ts-node src/adapters/rest/server.ts
+```
 
-Ele inicia na porta 3000.
+A API inicia na porta **3000**.
 
-### Endpoints:
+### GET
 
-**GET /compromissos**
-Retorna todos os compromissos
+```
+/compromissos
+```
 
-**POST /compromissos**
+### POST (JSON)
 
-Json exemplo:
-
-json
+```json
 {
-  "data": "25/12/2024",
-  "hora_inicio": "10:00",
-  "hora_fim": "11:00",
+  "data": "10/10/2024",
+  "hora_inicio": "08:00",
+  "hora_fim": "09:00",
   "descricao": "Reunião"
 }
+```
+
+---
+
+## O que o sistema faz
+
+O programa deixa cadastrar compromissos com data e hora e também listar todos os cadastrados.
+Se tentar cadastrar um compromisso que bate com o horário de outro, ele avisa que está ocupado.
+
+Ele usa SQLite para guardar os dados.
+
+---
+
